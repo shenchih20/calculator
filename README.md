@@ -1,8 +1,12 @@
 # Simple Calculator
 Using Flex/Bison to implement a simple calculator.
 
-it can use simple operator as following:
-+, -, *, /, (, )
+it can use simple operator as following:  
++, -, *, /, (, )  
+
+example:  
+
+![example](img/example.jpg)
 
 
 ## Reference
