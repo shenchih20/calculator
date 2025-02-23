@@ -53,7 +53,7 @@
 #  endif
 # endif
 
-#line 6 ".\\calc.parser.yy"
+#line 6 "calc.parser.yy"
 namespace calc {
 #line 59 "location.hh"
 
@@ -299,7 +299,7 @@ namespace calc {
     return ostr;
   }
 
-#line 6 ".\\calc.parser.yy"
+#line 6 "calc.parser.yy"
 } // calc
 #line 305 "location.hh"
 

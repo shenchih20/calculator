@@ -8,6 +8,7 @@
 %parse-param {Calculator &calculator}
 %lex-param {Calculator &calculator}
 %define parse.error verbose
+%define api.value.type variant
 
 %defines "calc.parser.hh"
 %output "calc.parser.cc"
@@ -23,9 +24,10 @@
 %code requires
 {
   #include <iostream>
+  #include <variant>
   #include "calculator.hpp"
   #include "location.hh"
-  #include "position.hh"
+  #include "position.hh"  
 }
 
 %code provides
@@ -43,15 +45,8 @@
   }
 }
 
-%union
-{
-AstNode* ast;
-double value;
-char oper;
-}
-
 /* Tokens */
-%token <value> NUMBER
+%token <double> NUMBER
 
 %token ADD // '+'
 %token SUB // '-'
@@ -63,13 +58,13 @@ char oper;
 
 %token ENDLINE 
 
-%type <ast> primary_expression
-%type <ast> unary_expression
-%type <oper> unary_operator
-%type <ast> cast_expression
-%type <ast> multiplicative_expression
-%type <ast> additive_expression
-%type <ast> expression
+%type <std::weak_ptr<AstNode>> primary_expression
+%type <std::weak_ptr<AstNode>> unary_expression
+%type <char> unary_operator
+%type <std::weak_ptr<AstNode>> cast_expression
+%type <std::weak_ptr<AstNode>> multiplicative_expression
+%type <std::weak_ptr<AstNode>> additive_expression
+%type <std::weak_ptr<AstNode>> expression
 
 
 /* Entry point of grammar */
@@ -114,7 +109,7 @@ additive_expression
 
 expression
 	: additive_expression  { $$=$1;}		
-	;
+  ;
 
 %%
 

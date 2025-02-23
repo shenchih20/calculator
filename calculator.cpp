@@ -36,15 +36,15 @@ namespace calc
         return error_;
     }
 
-    void Calculator::eval(AstNode* node)
+    void Calculator::eval(std::weak_ptr<AstNode> node)
     {
-        if(nullptr == node)
+        if(true == node.expired())
         {
             std::cout << "node is nullptr";
             return;
         }        
 
-        std::cout << "\n\nResult : " << node->eval() << "\n\n";
+        std::cout << "\n\nResult : " << node.lock()->eval() << "\n\n";
     }
 
 }

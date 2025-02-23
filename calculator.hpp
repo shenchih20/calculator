@@ -25,7 +25,7 @@ namespace calc
         void reset();
 
     private:
-        void eval(AstNode *node);
+        void eval(std::weak_ptr<AstNode>node);
         AstCreator creator_;
         CalcLexer* const lexer_ ;
         CalcParser* const parser_;

@@ -6,7 +6,7 @@
 
 #ifndef YY_DECL
 #define YY_DECL calc::CalcParser::token_type                         \
-        calc::CalcLexer::yylex(calc::CalcParser::semantic_type* yylval,    \
+        calc::CalcLexer::yylex(calc::CalcParser::value_type* yylval,    \
         calc::CalcParser::location_type* yylloc, \
         calc::Calculator& calculator)
 # endif

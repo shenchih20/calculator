@@ -520,8 +520,8 @@ static const flex_int16_t yy_rule_linenum[12] =
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-#line 1 ".\\calc.lexer.ll"
-#line 12 ".\\calc.lexer.ll"
+#line 1 "calc.lexer.ll"
+#line 12 "calc.lexer.ll"
 
 #include "calc.parser.hh"
 #include "calc.lexer.hh"
@@ -749,10 +749,10 @@ YY_DECL
 
 	{
 /* %% [7.0] user's declarations go here */
-#line 55 ".\\calc.lexer.ll"
+#line 55 "calc.lexer.ll"
 
 
-#line 58 ".\\calc.lexer.ll"
+#line 58 "calc.lexer.ll"
  /* The rules.  */
 
   STEP();
@@ -845,64 +845,64 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 63 ".\\calc.lexer.ll"
+#line 63 "calc.lexer.ll"
 {
-    yylval->value = atof(yytext);	  
+    yylval->emplace<double>(atof(yytext));
 	  return token::NUMBER; 
 }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 68 ".\\calc.lexer.ll"
+#line 68 "calc.lexer.ll"
 {
-    yylval->value = atof(yytext);	  
+     yylval->emplace<double>(atof(yytext));
 	  return token::NUMBER; 
 }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 73 ".\\calc.lexer.ll"
+#line 73 "calc.lexer.ll"
 { } // ignore space
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 74 ".\\calc.lexer.ll"
+#line 74 "calc.lexer.ll"
 { return token::ADD; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 75 ".\\calc.lexer.ll"
+#line 75 "calc.lexer.ll"
 { return token::SUB; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 76 ".\\calc.lexer.ll"
+#line 76 "calc.lexer.ll"
 { return token::MUL; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 77 ".\\calc.lexer.ll"
+#line 77 "calc.lexer.ll"
 { return token::DIV; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 78 ".\\calc.lexer.ll"
+#line 78 "calc.lexer.ll"
 { return token::LEFT_P; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 79 ".\\calc.lexer.ll"
+#line 79 "calc.lexer.ll"
 { return token::RIGHT_P; }
 	YY_BREAK
 case 10:
 /* rule 10 can match eol */
 YY_RULE_SETUP
-#line 81 ".\\calc.lexer.ll"
+#line 81 "calc.lexer.ll"
 {return token::ENDLINE;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 83 ".\\calc.lexer.ll"
+#line 83 "calc.lexer.ll"
 {
 
                 std::cerr << *yylloc << " Unexpected token : " << *yytext << std::endl;                
@@ -912,7 +912,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 90 ".\\calc.lexer.ll"
+#line 90 "calc.lexer.ll"
 ECHO;
 	YY_BREAK
 #line 918 "calc.lexer.cc"
@@ -2042,7 +2042,7 @@ void yyfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 90 ".\\calc.lexer.ll"
+#line 90 "calc.lexer.ll"
 
 
 

@@ -45,14 +45,15 @@
 #ifndef YY_YY_CALC_PARSER_HH_INCLUDED
 # define YY_YY_CALC_PARSER_HH_INCLUDED
 // "%code requires" blocks.
-#line 24 ".\\calc.parser.yy"
+#line 25 "calc.parser.yy"
 
   #include <iostream>
+  #include <variant>
   #include "calculator.hpp"
   #include "location.hh"
-  #include "position.hh"
+  #include "position.hh"  
 
-#line 56 "calc.parser.hh"
+#line 57 "calc.parser.hh"
 
 
 # include <cstdlib> // std::abort
@@ -186,9 +187,9 @@
 # define YYDEBUG 1
 #endif
 
-#line 6 ".\\calc.parser.yy"
+#line 6 "calc.parser.yy"
 namespace calc {
-#line 192 "calc.parser.hh"
+#line 193 "calc.parser.hh"
 
 
 
@@ -203,18 +204,215 @@ namespace calc {
 # endif
     typedef YYSTYPE value_type;
 #else
-    /// Symbol semantic values.
-    union value_type
+  /// A buffer to store and retrieve objects.
+  ///
+  /// Sort of a variant, but does not keep track of the nature
+  /// of the stored data, since that knowledge is available
+  /// via the current parser state.
+  class value_type
+  {
+  public:
+    /// Type of *this.
+    typedef value_type self_type;
+
+    /// Empty construction.
+    value_type () YY_NOEXCEPT
+      : yyraw_ ()
+    {}
+
+    /// Construct and fill.
+    template <typename T>
+    value_type (YY_RVREF (T) t)
     {
-#line 47 ".\\calc.parser.yy"
+      new (yyas_<T> ()) T (YY_MOVE (t));
+    }
 
-AstNode* ast;
-double value;
-char oper;
+#if 201103L <= YY_CPLUSPLUS
+    /// Non copyable.
+    value_type (const self_type&) = delete;
+    /// Non copyable.
+    self_type& operator= (const self_type&) = delete;
+#endif
 
-#line 216 "calc.parser.hh"
+    /// Destruction, allowed only if empty.
+    ~value_type () YY_NOEXCEPT
+    {}
 
+# if 201103L <= YY_CPLUSPLUS
+    /// Instantiate a \a T in here from \a t.
+    template <typename T, typename... U>
+    T&
+    emplace (U&&... u)
+    {
+      return *new (yyas_<T> ()) T (std::forward <U>(u)...);
+    }
+# else
+    /// Instantiate an empty \a T in here.
+    template <typename T>
+    T&
+    emplace ()
+    {
+      return *new (yyas_<T> ()) T ();
+    }
+
+    /// Instantiate a \a T in here from \a t.
+    template <typename T>
+    T&
+    emplace (const T& t)
+    {
+      return *new (yyas_<T> ()) T (t);
+    }
+# endif
+
+    /// Instantiate an empty \a T in here.
+    /// Obsolete, use emplace.
+    template <typename T>
+    T&
+    build ()
+    {
+      return emplace<T> ();
+    }
+
+    /// Instantiate a \a T in here from \a t.
+    /// Obsolete, use emplace.
+    template <typename T>
+    T&
+    build (const T& t)
+    {
+      return emplace<T> (t);
+    }
+
+    /// Accessor to a built \a T.
+    template <typename T>
+    T&
+    as () YY_NOEXCEPT
+    {
+      return *yyas_<T> ();
+    }
+
+    /// Const accessor to a built \a T (for %printer).
+    template <typename T>
+    const T&
+    as () const YY_NOEXCEPT
+    {
+      return *yyas_<T> ();
+    }
+
+    /// Swap the content with \a that, of same type.
+    ///
+    /// Both variants must be built beforehand, because swapping the actual
+    /// data requires reading it (with as()), and this is not possible on
+    /// unconstructed variants: it would require some dynamic testing, which
+    /// should not be the variant's responsibility.
+    /// Swapping between built and (possibly) non-built is done with
+    /// self_type::move ().
+    template <typename T>
+    void
+    swap (self_type& that) YY_NOEXCEPT
+    {
+      std::swap (as<T> (), that.as<T> ());
+    }
+
+    /// Move the content of \a that to this.
+    ///
+    /// Destroys \a that.
+    template <typename T>
+    void
+    move (self_type& that)
+    {
+# if 201103L <= YY_CPLUSPLUS
+      emplace<T> (std::move (that.as<T> ()));
+# else
+      emplace<T> ();
+      swap<T> (that);
+# endif
+      that.destroy<T> ();
+    }
+
+# if 201103L <= YY_CPLUSPLUS
+    /// Move the content of \a that to this.
+    template <typename T>
+    void
+    move (self_type&& that)
+    {
+      emplace<T> (std::move (that.as<T> ()));
+      that.destroy<T> ();
+    }
+#endif
+
+    /// Copy the content of \a that to this.
+    template <typename T>
+    void
+    copy (const self_type& that)
+    {
+      emplace<T> (that.as<T> ());
+    }
+
+    /// Destroy the stored \a T.
+    template <typename T>
+    void
+    destroy ()
+    {
+      as<T> ().~T ();
+    }
+
+  private:
+#if YY_CPLUSPLUS < 201103L
+    /// Non copyable.
+    value_type (const self_type&);
+    /// Non copyable.
+    self_type& operator= (const self_type&);
+#endif
+
+    /// Accessor to raw memory as \a T.
+    template <typename T>
+    T*
+    yyas_ () YY_NOEXCEPT
+    {
+      void *yyp = yyraw_;
+      return static_cast<T*> (yyp);
+     }
+
+    /// Const accessor to raw memory as \a T.
+    template <typename T>
+    const T*
+    yyas_ () const YY_NOEXCEPT
+    {
+      const void *yyp = yyraw_;
+      return static_cast<const T*> (yyp);
+     }
+
+    /// An auxiliary type to compute the largest semantic type.
+    union union_type
+    {
+      // unary_operator
+      char dummy1[sizeof (char)];
+
+      // NUMBER
+      char dummy2[sizeof (double)];
+
+      // primary_expression
+      // unary_expression
+      // cast_expression
+      // multiplicative_expression
+      // additive_expression
+      // expression
+      char dummy3[sizeof (std::weak_ptr<AstNode>)];
     };
+
+    /// The size of the largest semantic type.
+    enum { size = sizeof (union_type) };
+
+    /// A buffer to store semantic values.
+    union
+    {
+      /// Strongest alignment constraints.
+      long double yyalign_me_;
+      /// A buffer large enough to store any of the semantic values.
+      char yyraw_[size];
+    };
+  };
+
 #endif
     /// Backward compatibility (Bison 3.8).
     typedef value_type semantic_type;
@@ -326,21 +524,92 @@ char oper;
       /// Move constructor.
       basic_symbol (basic_symbol&& that)
         : Base (std::move (that))
-        , value (std::move (that.value))
+        , value ()
         , location (std::move (that.location))
-      {}
+      {
+        switch (this->kind ())
+    {
+      case symbol_kind::S_unary_operator: // unary_operator
+        value.move< char > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_NUMBER: // NUMBER
+        value.move< double > (std::move (that.value));
+        break;
+
+      case symbol_kind::S_primary_expression: // primary_expression
+      case symbol_kind::S_unary_expression: // unary_expression
+      case symbol_kind::S_cast_expression: // cast_expression
+      case symbol_kind::S_multiplicative_expression: // multiplicative_expression
+      case symbol_kind::S_additive_expression: // additive_expression
+      case symbol_kind::S_expression: // expression
+        value.move< std::weak_ptr<AstNode> > (std::move (that.value));
+        break;
+
+      default:
+        break;
+    }
+
+      }
 #endif
 
       /// Copy constructor.
       basic_symbol (const basic_symbol& that);
-      /// Constructor for valueless symbols.
-      basic_symbol (typename Base::kind_type t,
-                    YY_MOVE_REF (location_type) l);
 
-      /// Constructor for symbols with semantic value.
-      basic_symbol (typename Base::kind_type t,
-                    YY_RVREF (value_type) v,
-                    YY_RVREF (location_type) l);
+      /// Constructors for typed symbols.
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, location_type&& l)
+        : Base (t)
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const location_type& l)
+        : Base (t)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, char&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const char& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, double&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const double& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
+
+#if 201103L <= YY_CPLUSPLUS
+      basic_symbol (typename Base::kind_type t, std::weak_ptr<AstNode>&& v, location_type&& l)
+        : Base (t)
+        , value (std::move (v))
+        , location (std::move (l))
+      {}
+#else
+      basic_symbol (typename Base::kind_type t, const std::weak_ptr<AstNode>& v, const location_type& l)
+        : Base (t)
+        , value (v)
+        , location (l)
+      {}
+#endif
 
       /// Destroy the symbol.
       ~basic_symbol ()
@@ -353,6 +622,40 @@ char oper;
       /// Destroy contents, and record that is empty.
       void clear () YY_NOEXCEPT
       {
+        // User destructor.
+        symbol_kind_type yykind = this->kind ();
+        basic_symbol<Base>& yysym = *this;
+        (void) yysym;
+        switch (yykind)
+        {
+       default:
+          break;
+        }
+
+        // Value type destructor.
+switch (yykind)
+    {
+      case symbol_kind::S_unary_operator: // unary_operator
+        value.template destroy< char > ();
+        break;
+
+      case symbol_kind::S_NUMBER: // NUMBER
+        value.template destroy< double > ();
+        break;
+
+      case symbol_kind::S_primary_expression: // primary_expression
+      case symbol_kind::S_unary_expression: // unary_expression
+      case symbol_kind::S_cast_expression: // cast_expression
+      case symbol_kind::S_multiplicative_expression: // multiplicative_expression
+      case symbol_kind::S_additive_expression: // additive_expression
+      case symbol_kind::S_expression: // expression
+        value.template destroy< std::weak_ptr<AstNode> > ();
+        break;
+
+      default:
+        break;
+    }
+
         Base::clear ();
       }
 
@@ -429,7 +732,31 @@ char oper;
 
     /// "External" symbols: returned by the scanner.
     struct symbol_type : basic_symbol<by_kind>
-    {};
+    {
+      /// Superclass.
+      typedef basic_symbol<by_kind> super_type;
+
+      /// Empty symbol.
+      symbol_type () YY_NOEXCEPT {}
+
+      /// Constructor for valueless symbols, and symbols from each type.
+#if 201103L <= YY_CPLUSPLUS
+      symbol_type (int tok, location_type l)
+        : super_type (token_kind_type (tok), std::move (l))
+#else
+      symbol_type (int tok, const location_type& l)
+        : super_type (token_kind_type (tok), l)
+#endif
+      {}
+#if 201103L <= YY_CPLUSPLUS
+      symbol_type (int tok, double v, location_type l)
+        : super_type (token_kind_type (tok), std::move (v), std::move (l))
+#else
+      symbol_type (int tok, const double& v, const location_type& l)
+        : super_type (token_kind_type (tok), v, l)
+#endif
+      {}
+    };
 
     /// Build a parser object.
     CalcParser (Calculator &calculator_yyarg);
@@ -476,6 +803,172 @@ char oper;
     /// YYSYMBOL.  No bounds checking.
     static std::string symbol_name (symbol_kind_type yysymbol);
 
+    // Implementation of make_symbol for each token kind.
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_YYEOF (location_type l)
+      {
+        return symbol_type (token::YYEOF, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_YYEOF (const location_type& l)
+      {
+        return symbol_type (token::YYEOF, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_YYerror (location_type l)
+      {
+        return symbol_type (token::YYerror, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_YYerror (const location_type& l)
+      {
+        return symbol_type (token::YYerror, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_YYUNDEF (location_type l)
+      {
+        return symbol_type (token::YYUNDEF, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_YYUNDEF (const location_type& l)
+      {
+        return symbol_type (token::YYUNDEF, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_NUMBER (double v, location_type l)
+      {
+        return symbol_type (token::NUMBER, std::move (v), std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_NUMBER (const double& v, const location_type& l)
+      {
+        return symbol_type (token::NUMBER, v, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_ADD (location_type l)
+      {
+        return symbol_type (token::ADD, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_ADD (const location_type& l)
+      {
+        return symbol_type (token::ADD, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_SUB (location_type l)
+      {
+        return symbol_type (token::SUB, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_SUB (const location_type& l)
+      {
+        return symbol_type (token::SUB, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_MUL (location_type l)
+      {
+        return symbol_type (token::MUL, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_MUL (const location_type& l)
+      {
+        return symbol_type (token::MUL, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_DIV (location_type l)
+      {
+        return symbol_type (token::DIV, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_DIV (const location_type& l)
+      {
+        return symbol_type (token::DIV, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_LEFT_P (location_type l)
+      {
+        return symbol_type (token::LEFT_P, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_LEFT_P (const location_type& l)
+      {
+        return symbol_type (token::LEFT_P, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_RIGHT_P (location_type l)
+      {
+        return symbol_type (token::RIGHT_P, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_RIGHT_P (const location_type& l)
+      {
+        return symbol_type (token::RIGHT_P, l);
+      }
+#endif
+#if 201103L <= YY_CPLUSPLUS
+      static
+      symbol_type
+      make_ENDLINE (location_type l)
+      {
+        return symbol_type (token::ENDLINE, std::move (l));
+      }
+#else
+      static
+      symbol_type
+      make_ENDLINE (const location_type& l)
+      {
+        return symbol_type (token::ENDLINE, l);
+      }
+#endif
 
 
     class context
@@ -818,13 +1311,13 @@ char oper;
   };
 
 
-#line 6 ".\\calc.parser.yy"
+#line 6 "calc.parser.yy"
 } // calc
-#line 824 "calc.parser.hh"
+#line 1317 "calc.parser.hh"
 
 
 // "%code provides" blocks.
-#line 32 ".\\calc.parser.yy"
+#line 34 "calc.parser.yy"
 
   namespace calc
   {
@@ -838,7 +1331,7 @@ char oper;
     }
   }
 
-#line 842 "calc.parser.hh"
+#line 1335 "calc.parser.hh"
 
 
 #endif // !YY_YY_CALC_PARSER_HH_INCLUDED

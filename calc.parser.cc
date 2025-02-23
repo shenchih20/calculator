@@ -37,7 +37,7 @@
 
 
 // First part of user prologue.
-#line 15 ".\\calc.parser.yy"
+#line 16 "calc.parser.yy"
      /* PARSER */
 
 #include "calc.parser.hh"
@@ -141,7 +141,7 @@
 #define YYERROR         goto yyerrorlab
 #define YYRECOVERING()  (!!yyerrstatus_)
 
-#line 6 ".\\calc.parser.yy"
+#line 6 "calc.parser.yy"
 namespace calc {
 #line 147 "calc.parser.cc"
 
@@ -170,25 +170,35 @@ namespace calc {
   template <typename Base>
   CalcParser::basic_symbol<Base>::basic_symbol (const basic_symbol& that)
     : Base (that)
-    , value (that.value)
-    , location (that.location)
-  {}
-
-
-  /// Constructor for valueless symbols.
-  template <typename Base>
-  CalcParser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, YY_MOVE_REF (location_type) l)
-    : Base (t)
     , value ()
-    , location (l)
-  {}
+    , location (that.location)
+  {
+    switch (this->kind ())
+    {
+      case symbol_kind::S_unary_operator: // unary_operator
+        value.copy< char > (YY_MOVE (that.value));
+        break;
 
-  template <typename Base>
-  CalcParser::basic_symbol<Base>::basic_symbol (typename Base::kind_type t, YY_RVREF (value_type) v, YY_RVREF (location_type) l)
-    : Base (t)
-    , value (YY_MOVE (v))
-    , location (YY_MOVE (l))
-  {}
+      case symbol_kind::S_NUMBER: // NUMBER
+        value.copy< double > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_primary_expression: // primary_expression
+      case symbol_kind::S_unary_expression: // unary_expression
+      case symbol_kind::S_cast_expression: // cast_expression
+      case symbol_kind::S_multiplicative_expression: // multiplicative_expression
+      case symbol_kind::S_additive_expression: // additive_expression
+      case symbol_kind::S_expression: // expression
+        value.copy< std::weak_ptr<AstNode> > (YY_MOVE (that.value));
+        break;
+
+      default:
+        break;
+    }
+
+  }
+
+
 
 
   template <typename Base>
@@ -211,7 +221,29 @@ namespace calc {
   CalcParser::basic_symbol<Base>::move (basic_symbol& s)
   {
     super_type::move (s);
-    value = YY_MOVE (s.value);
+    switch (this->kind ())
+    {
+      case symbol_kind::S_unary_operator: // unary_operator
+        value.move< char > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_NUMBER: // NUMBER
+        value.move< double > (YY_MOVE (s.value));
+        break;
+
+      case symbol_kind::S_primary_expression: // primary_expression
+      case symbol_kind::S_unary_expression: // unary_expression
+      case symbol_kind::S_cast_expression: // cast_expression
+      case symbol_kind::S_multiplicative_expression: // multiplicative_expression
+      case symbol_kind::S_additive_expression: // additive_expression
+      case symbol_kind::S_expression: // expression
+        value.move< std::weak_ptr<AstNode> > (YY_MOVE (s.value));
+        break;
+
+      default:
+        break;
+    }
+
     location = YY_MOVE (s.location);
   }
 
@@ -305,8 +337,31 @@ namespace calc {
   {}
 
   CalcParser::stack_symbol_type::stack_symbol_type (YY_RVREF (stack_symbol_type) that)
-    : super_type (YY_MOVE (that.state), YY_MOVE (that.value), YY_MOVE (that.location))
+    : super_type (YY_MOVE (that.state), YY_MOVE (that.location))
   {
+    switch (that.kind ())
+    {
+      case symbol_kind::S_unary_operator: // unary_operator
+        value.YY_MOVE_OR_COPY< char > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_NUMBER: // NUMBER
+        value.YY_MOVE_OR_COPY< double > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_primary_expression: // primary_expression
+      case symbol_kind::S_unary_expression: // unary_expression
+      case symbol_kind::S_cast_expression: // cast_expression
+      case symbol_kind::S_multiplicative_expression: // multiplicative_expression
+      case symbol_kind::S_additive_expression: // additive_expression
+      case symbol_kind::S_expression: // expression
+        value.YY_MOVE_OR_COPY< std::weak_ptr<AstNode> > (YY_MOVE (that.value));
+        break;
+
+      default:
+        break;
+    }
+
 #if 201103L <= YY_CPLUSPLUS
     // that is emptied.
     that.state = empty_state;
@@ -314,8 +369,31 @@ namespace calc {
   }
 
   CalcParser::stack_symbol_type::stack_symbol_type (state_type s, YY_MOVE_REF (symbol_type) that)
-    : super_type (s, YY_MOVE (that.value), YY_MOVE (that.location))
+    : super_type (s, YY_MOVE (that.location))
   {
+    switch (that.kind ())
+    {
+      case symbol_kind::S_unary_operator: // unary_operator
+        value.move< char > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_NUMBER: // NUMBER
+        value.move< double > (YY_MOVE (that.value));
+        break;
+
+      case symbol_kind::S_primary_expression: // primary_expression
+      case symbol_kind::S_unary_expression: // unary_expression
+      case symbol_kind::S_cast_expression: // cast_expression
+      case symbol_kind::S_multiplicative_expression: // multiplicative_expression
+      case symbol_kind::S_additive_expression: // additive_expression
+      case symbol_kind::S_expression: // expression
+        value.move< std::weak_ptr<AstNode> > (YY_MOVE (that.value));
+        break;
+
+      default:
+        break;
+    }
+
     // that is emptied.
     that.kind_ = symbol_kind::S_YYEMPTY;
   }
@@ -325,7 +403,29 @@ namespace calc {
   CalcParser::stack_symbol_type::operator= (const stack_symbol_type& that)
   {
     state = that.state;
-    value = that.value;
+    switch (that.kind ())
+    {
+      case symbol_kind::S_unary_operator: // unary_operator
+        value.copy< char > (that.value);
+        break;
+
+      case symbol_kind::S_NUMBER: // NUMBER
+        value.copy< double > (that.value);
+        break;
+
+      case symbol_kind::S_primary_expression: // primary_expression
+      case symbol_kind::S_unary_expression: // unary_expression
+      case symbol_kind::S_cast_expression: // cast_expression
+      case symbol_kind::S_multiplicative_expression: // multiplicative_expression
+      case symbol_kind::S_additive_expression: // additive_expression
+      case symbol_kind::S_expression: // expression
+        value.copy< std::weak_ptr<AstNode> > (that.value);
+        break;
+
+      default:
+        break;
+    }
+
     location = that.location;
     return *this;
   }
@@ -334,7 +434,29 @@ namespace calc {
   CalcParser::stack_symbol_type::operator= (stack_symbol_type& that)
   {
     state = that.state;
-    value = that.value;
+    switch (that.kind ())
+    {
+      case symbol_kind::S_unary_operator: // unary_operator
+        value.move< char > (that.value);
+        break;
+
+      case symbol_kind::S_NUMBER: // NUMBER
+        value.move< double > (that.value);
+        break;
+
+      case symbol_kind::S_primary_expression: // primary_expression
+      case symbol_kind::S_unary_expression: // unary_expression
+      case symbol_kind::S_cast_expression: // cast_expression
+      case symbol_kind::S_multiplicative_expression: // multiplicative_expression
+      case symbol_kind::S_additive_expression: // additive_expression
+      case symbol_kind::S_expression: // expression
+        value.move< std::weak_ptr<AstNode> > (that.value);
+        break;
+
+      default:
+        break;
+    }
+
     location = that.location;
     // that is emptied.
     that.state = empty_state;
@@ -348,9 +470,6 @@ namespace calc {
   {
     if (yymsg)
       YY_SYMBOL_PRINT (yymsg, yysym);
-
-    // User destructor.
-    YY_USE (yysym.kind ());
   }
 
 #if YYDEBUG
@@ -587,16 +706,32 @@ namespace calc {
     {
       stack_symbol_type yylhs;
       yylhs.state = yy_lr_goto_state_ (yystack_[yylen].state, yyr1_[yyn]);
-      /* If YYLEN is nonzero, implement the default value of the
-         action: '$$ = $1'.  Otherwise, use the top of the stack.
+      /* Variants are always initialized to an empty instance of the
+         correct type. The default '$$ = $1' action is NOT applied
+         when using variants.  */
+      switch (yyr1_[yyn])
+    {
+      case symbol_kind::S_unary_operator: // unary_operator
+        yylhs.value.emplace< char > ();
+        break;
 
-         Otherwise, the following line sets YYLHS.VALUE to garbage.
-         This behavior is undocumented and Bison users should not rely
-         upon it.  */
-      if (yylen)
-        yylhs.value = yystack_[yylen - 1].value;
-      else
-        yylhs.value = yystack_[0].value;
+      case symbol_kind::S_NUMBER: // NUMBER
+        yylhs.value.emplace< double > ();
+        break;
+
+      case symbol_kind::S_primary_expression: // primary_expression
+      case symbol_kind::S_unary_expression: // unary_expression
+      case symbol_kind::S_cast_expression: // cast_expression
+      case symbol_kind::S_multiplicative_expression: // multiplicative_expression
+      case symbol_kind::S_additive_expression: // additive_expression
+      case symbol_kind::S_expression: // expression
+        yylhs.value.emplace< std::weak_ptr<AstNode> > ();
+        break;
+
+      default:
+        break;
+    }
+
 
       // Default location.
       {
@@ -614,97 +749,97 @@ namespace calc {
           switch (yyn)
             {
   case 2: // start: expression ENDLINE
-#line 81 ".\\calc.parser.yy"
-                       { calculator.eval((yystack_[1].value.ast)); }
-#line 620 "calc.parser.cc"
+#line 76 "calc.parser.yy"
+                       { calculator.eval(yystack_[1].value.as < std::weak_ptr<AstNode> > ()); }
+#line 755 "calc.parser.cc"
     break;
 
   case 3: // primary_expression: NUMBER
-#line 85 ".\\calc.parser.yy"
-           { (yylhs.value.ast) = calculator.creator_.Number((yystack_[0].value.value)); }
-#line 626 "calc.parser.cc"
+#line 80 "calc.parser.yy"
+           { yylhs.value.as < std::weak_ptr<AstNode> > () = calculator.creator_.Number(yystack_[0].value.as < double > ()); }
+#line 761 "calc.parser.cc"
     break;
 
   case 4: // primary_expression: LEFT_P expression RIGHT_P
-#line 86 ".\\calc.parser.yy"
-                              { (yylhs.value.ast) = (yystack_[1].value.ast); }
-#line 632 "calc.parser.cc"
+#line 81 "calc.parser.yy"
+                              { yylhs.value.as < std::weak_ptr<AstNode> > () = yystack_[1].value.as < std::weak_ptr<AstNode> > (); }
+#line 767 "calc.parser.cc"
     break;
 
   case 5: // unary_expression: primary_expression
-#line 90 ".\\calc.parser.yy"
-                       { (yylhs.value.ast) = (yystack_[0].value.ast);}
-#line 638 "calc.parser.cc"
+#line 85 "calc.parser.yy"
+                       { yylhs.value.as < std::weak_ptr<AstNode> > () = yystack_[0].value.as < std::weak_ptr<AstNode> > ();}
+#line 773 "calc.parser.cc"
     break;
 
   case 6: // unary_expression: unary_operator cast_expression
-#line 91 ".\\calc.parser.yy"
-                                   { (yylhs.value.ast) = calculator.creator_.UnaryOp((yystack_[1].value.oper), (yystack_[0].value.ast));}
-#line 644 "calc.parser.cc"
+#line 86 "calc.parser.yy"
+                                   { yylhs.value.as < std::weak_ptr<AstNode> > () = calculator.creator_.UnaryOp(yystack_[1].value.as < char > (), yystack_[0].value.as < std::weak_ptr<AstNode> > ());}
+#line 779 "calc.parser.cc"
     break;
 
   case 7: // unary_operator: ADD
-#line 95 ".\\calc.parser.yy"
-          {(yylhs.value.oper) = '+';}
-#line 650 "calc.parser.cc"
+#line 90 "calc.parser.yy"
+          {yylhs.value.as < char > () = '+';}
+#line 785 "calc.parser.cc"
     break;
 
   case 8: // unary_operator: SUB
-#line 96 ".\\calc.parser.yy"
-          {(yylhs.value.oper) = '-';}
-#line 656 "calc.parser.cc"
+#line 91 "calc.parser.yy"
+          {yylhs.value.as < char > () = '-';}
+#line 791 "calc.parser.cc"
     break;
 
   case 9: // cast_expression: unary_expression
-#line 100 ".\\calc.parser.yy"
-                     {(yylhs.value.ast)=(yystack_[0].value.ast);}
-#line 662 "calc.parser.cc"
+#line 95 "calc.parser.yy"
+                     {yylhs.value.as < std::weak_ptr<AstNode> > ()=yystack_[0].value.as < std::weak_ptr<AstNode> > ();}
+#line 797 "calc.parser.cc"
     break;
 
   case 10: // multiplicative_expression: cast_expression
-#line 104 ".\\calc.parser.yy"
-                    { (yylhs.value.ast) = (yystack_[0].value.ast); }
-#line 668 "calc.parser.cc"
+#line 99 "calc.parser.yy"
+                    { yylhs.value.as < std::weak_ptr<AstNode> > () = yystack_[0].value.as < std::weak_ptr<AstNode> > (); }
+#line 803 "calc.parser.cc"
     break;
 
   case 11: // multiplicative_expression: multiplicative_expression MUL cast_expression
-#line 105 ".\\calc.parser.yy"
-                                                  { (yylhs.value.ast) = calculator.creator_.BinaryOp((yystack_[2].value.ast), '*', (yystack_[0].value.ast)); }
-#line 674 "calc.parser.cc"
+#line 100 "calc.parser.yy"
+                                                  { yylhs.value.as < std::weak_ptr<AstNode> > () = calculator.creator_.BinaryOp(yystack_[2].value.as < std::weak_ptr<AstNode> > (), '*', yystack_[0].value.as < std::weak_ptr<AstNode> > ()); }
+#line 809 "calc.parser.cc"
     break;
 
   case 12: // multiplicative_expression: multiplicative_expression DIV cast_expression
-#line 106 ".\\calc.parser.yy"
-                                                  { (yylhs.value.ast) = calculator.creator_.BinaryOp((yystack_[2].value.ast), '/', (yystack_[0].value.ast)); }
-#line 680 "calc.parser.cc"
+#line 101 "calc.parser.yy"
+                                                  { yylhs.value.as < std::weak_ptr<AstNode> > () = calculator.creator_.BinaryOp(yystack_[2].value.as < std::weak_ptr<AstNode> > (), '/', yystack_[0].value.as < std::weak_ptr<AstNode> > ()); }
+#line 815 "calc.parser.cc"
     break;
 
   case 13: // additive_expression: multiplicative_expression
-#line 110 ".\\calc.parser.yy"
-                              { (yylhs.value.ast) = (yystack_[0].value.ast); }
-#line 686 "calc.parser.cc"
+#line 105 "calc.parser.yy"
+                              { yylhs.value.as < std::weak_ptr<AstNode> > () = yystack_[0].value.as < std::weak_ptr<AstNode> > (); }
+#line 821 "calc.parser.cc"
     break;
 
   case 14: // additive_expression: additive_expression ADD multiplicative_expression
-#line 111 ".\\calc.parser.yy"
-                                                      { (yylhs.value.ast) = calculator.creator_.BinaryOp((yystack_[2].value.ast), '+', (yystack_[0].value.ast)); }
-#line 692 "calc.parser.cc"
+#line 106 "calc.parser.yy"
+                                                      { yylhs.value.as < std::weak_ptr<AstNode> > () = calculator.creator_.BinaryOp(yystack_[2].value.as < std::weak_ptr<AstNode> > (), '+', yystack_[0].value.as < std::weak_ptr<AstNode> > ()); }
+#line 827 "calc.parser.cc"
     break;
 
   case 15: // additive_expression: additive_expression SUB multiplicative_expression
-#line 112 ".\\calc.parser.yy"
-                                                      { (yylhs.value.ast) = calculator.creator_.BinaryOp((yystack_[2].value.ast), '-', (yystack_[0].value.ast)); }
-#line 698 "calc.parser.cc"
+#line 107 "calc.parser.yy"
+                                                      { yylhs.value.as < std::weak_ptr<AstNode> > () = calculator.creator_.BinaryOp(yystack_[2].value.as < std::weak_ptr<AstNode> > (), '-', yystack_[0].value.as < std::weak_ptr<AstNode> > ()); }
+#line 833 "calc.parser.cc"
     break;
 
   case 16: // expression: additive_expression
-#line 116 ".\\calc.parser.yy"
-                               { (yylhs.value.ast)=(yystack_[0].value.ast);}
-#line 704 "calc.parser.cc"
+#line 111 "calc.parser.yy"
+                               { yylhs.value.as < std::weak_ptr<AstNode> > ()=yystack_[0].value.as < std::weak_ptr<AstNode> > ();}
+#line 839 "calc.parser.cc"
     break;
 
 
-#line 708 "calc.parser.cc"
+#line 843 "calc.parser.cc"
 
             default:
               break;
@@ -1144,8 +1279,8 @@ namespace calc {
   const signed char
   CalcParser::yyrline_[] =
   {
-       0,    81,    81,    85,    86,    90,    91,    95,    96,   100,
-     104,   105,   106,   110,   111,   112,   116
+       0,    76,    76,    80,    81,    85,    86,    90,    91,    95,
+      99,   100,   101,   105,   106,   107,   111
   };
 
   void
@@ -1223,11 +1358,11 @@ namespace calc {
       return symbol_kind::S_YYUNDEF;
   }
 
-#line 6 ".\\calc.parser.yy"
+#line 6 "calc.parser.yy"
 } // calc
-#line 1229 "calc.parser.cc"
+#line 1364 "calc.parser.cc"
 
-#line 119 ".\\calc.parser.yy"
+#line 114 "calc.parser.yy"
 
 
 namespace calc

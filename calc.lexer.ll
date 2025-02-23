@@ -60,12 +60,12 @@ eol     [\n\r]+
 %}
 
 [0-9]+ {
-    yylval->value = atof(yytext);	  
+    yylval->emplace<double>(atof(yytext));
 	  return token::NUMBER; 
 }
 
 [0-9]+"."[0-9]+ {
-    yylval->value = atof(yytext);	  
+     yylval->emplace<double>(atof(yytext));
 	  return token::NUMBER; 
 }
 

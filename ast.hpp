@@ -25,17 +25,17 @@ namespace calc
     {
     private:
         char oper;
-        AstNode* node;
+        std::weak_ptr<AstNode> node;
 
     public:
-        UnaryOpNode(char oper, AstNode *node) : oper(oper), node(node)
+        UnaryOpNode(char oper, std::weak_ptr<AstNode>node) : oper(oper), node(node)
         {
 
         }
 
         virtual double eval() override
         {
-            auto value = node->eval();
+            auto value = node.lock()->eval();
             switch(oper)
             {
             case '+' : return value;
@@ -51,20 +51,20 @@ namespace calc
     {
     private:
         const char oper;
-        AstNode* last;
-        AstNode* rast;
+        std::weak_ptr<AstNode> last;
+        std::weak_ptr<AstNode> rast;
 
     public:
-        BinaryOpNode(AstNode* last,
+        BinaryOpNode(std::weak_ptr<AstNode> last,
                      const char oper,
-                     AstNode* rast) : last(last), oper(oper), rast(rast)
+                     std::weak_ptr<AstNode> rast) : last(last), oper(oper), rast(rast)
         {
         }
 
         virtual double eval() override
         {
-            auto lv = last->eval();
-            auto rv = rast->eval();
+            auto lv = last.lock()->eval();
+            auto rv = rast.lock()->eval();
 
             switch (oper)
             {
@@ -83,7 +83,7 @@ namespace calc
     class AstCreator
     {
     private:
-        std::list<AstNode*> node_list;
+        std::list<std::shared_ptr<AstNode>> node_list;
     
     public:
         AstCreator() = default;        
@@ -92,31 +92,26 @@ namespace calc
 
         void Clear()
         {
-            for each(AstNode* node in node_list)
-            {
-                delete node;
-            }
-
             node_list.clear();
         }
 
-        AstNode* Number(double value)
+        std::weak_ptr<AstNode> Number(double value)
         {
-            auto node = new NumberNode(value);
+            auto node = std::make_shared<NumberNode>(value);
             node_list.push_back(node);
             return node;
         }
 
-        AstNode* UnaryOp(char oper, AstNode* ast)
+        std::weak_ptr<AstNode> UnaryOp(char oper, std::weak_ptr<AstNode> ast)
         {
-            auto node = new UnaryOpNode(oper, ast);
+            auto node = std::make_shared<UnaryOpNode>(oper, ast);
             node_list.push_back(node);
             return node;
         }
 
-        AstNode* BinaryOp(AstNode* last, char oper, AstNode* rast)
+        std::weak_ptr<AstNode> BinaryOp(std::weak_ptr<AstNode> last, char oper, std::weak_ptr<AstNode> rast)
         {
-            auto node = new BinaryOpNode(last, oper, rast);
+            auto node = std::make_shared<BinaryOpNode>(last, oper, rast);
             node_list.push_back(node);
             return node;
         }
